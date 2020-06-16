@@ -11,6 +11,7 @@
 #include <freertos/portmacro.h>
 #include <freertos/projdefs.h>
 #include <freertos/task.h>
+#include <math.h>
 
 #include "vector_3d.h"
 #include "data.h"
@@ -78,7 +79,7 @@ _Noreturn void servo_control(void *args)
         accelerometer_data data;
         if (xQueueReceive(queue, &data, (TickType_t) 10) == pdTRUE) {
             double theta_smoothed = alpha * data.theta + (1 - alpha) * prev_theta;
-            prev_theta = theta_smoothed;
+            prev_theta = isnan(theta_smoothed) ? 0 : theta_smoothed;
             printf("Angle of rotation: %f\n", theta_smoothed);
             int32_t pulse = servo_per_degree_init(theta_smoothed, MAX_DEGREE, MIN_PULSE, MAX_PULSE);
             mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, pulse);
